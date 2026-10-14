@@ -1,0 +1,18 @@
+[
+  {
+    "on_hand": ["chicken breast", "cooked brown rice", "broccoli", "olive oil"],
+    "kcal_target": 580,
+    "protein_target_g": 48
+  },
+  {
+    "on_hand": ["salmon fillet", "sweet potato", "spinach", "olive oil"],
+    "kcal_target": 570,
+    "protein_target_g": 34,
+    "allergies": ["dairy"]
+  },
+  {
+    "on_hand": ["rolled oats", "greek yoghurt", "banana"],
+    "kcal_target": 560,
+    "protein_target_g": 31
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "on_hand": ["egg", "potato", "spinach", "tomato"],
+    "kcal_target": 600,
+    "protein_target_g": 40
+  },
+  {
+    "on_hand": ["tomato", "spinach", "potato", "egg"],
+    "kcal_target": 600,
+    "protein_target_g": 40
+  }
+]

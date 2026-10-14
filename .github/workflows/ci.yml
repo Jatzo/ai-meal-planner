@@ -1,0 +1,20 @@
+name: tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install pytest
+      - run: python -m pytest
+      - name: Run the rules-only example
+        run: python -m mealplanner examples/rules_only.json
+      - name: Run the fallback example with the stub model
+        run: python -m mealplanner examples/forces_fallback.json --model stub

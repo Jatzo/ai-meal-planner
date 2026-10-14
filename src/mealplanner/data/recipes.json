@@ -1,0 +1,47 @@
+[
+  {"name": "chicken and rice bowl", "ingredients": [
+    {"food": "chicken breast", "grams": 130}, {"food": "cooked brown rice", "grams": 200},
+    {"food": "broccoli", "grams": 100}, {"food": "olive oil", "grams": 10}]},
+  {"name": "salmon with sweet potato and spinach", "ingredients": [
+    {"food": "salmon fillet", "grams": 140}, {"food": "sweet potato", "grams": 250},
+    {"food": "spinach", "grams": 80}, {"food": "olive oil", "grams": 5}]},
+  {"name": "prawn and tomato pasta", "ingredients": [
+    {"food": "king prawns", "grams": 150}, {"food": "cooked pasta", "grams": 220},
+    {"food": "tomato", "grams": 200}, {"food": "onion", "grams": 50},
+    {"food": "olive oil", "grams": 10}]},
+  {"name": "chicken satay with rice", "ingredients": [
+    {"food": "chicken breast", "grams": 130}, {"food": "peanut butter", "grams": 20},
+    {"food": "soy sauce", "grams": 15}, {"food": "cooked brown rice", "grams": 180},
+    {"food": "peppers", "grams": 100}, {"food": "coconut milk", "grams": 30}]},
+  {"name": "tofu and vegetable stir fry", "ingredients": [
+    {"food": "firm tofu", "grams": 200}, {"food": "soy sauce", "grams": 15},
+    {"food": "broccoli", "grams": 150}, {"food": "peppers", "grams": 100},
+    {"food": "cooked brown rice", "grams": 200}, {"food": "olive oil", "grams": 10}]},
+  {"name": "cheese omelette with toast", "ingredients": [
+    {"food": "egg", "grams": 180}, {"food": "cheddar cheese", "grams": 30},
+    {"food": "spinach", "grams": 60}, {"food": "wholemeal bread", "grams": 60},
+    {"food": "olive oil", "grams": 5}]},
+  {"name": "turkey and bean chilli", "ingredients": [
+    {"food": "turkey mince", "grams": 120}, {"food": "black beans", "grams": 120},
+    {"food": "tomato", "grams": 200}, {"food": "onion", "grams": 80},
+    {"food": "peppers", "grams": 100}, {"food": "cooked brown rice", "grams": 150}]},
+  {"name": "lentil and spinach dahl", "ingredients": [
+    {"food": "red lentils", "grams": 300}, {"food": "coconut milk", "grams": 60},
+    {"food": "spinach", "grams": 100}, {"food": "onion", "grams": 80},
+    {"food": "tomato", "grams": 100}, {"food": "cooked brown rice", "grams": 100}]},
+  {"name": "beef and potato bowl", "ingredients": [
+    {"food": "beef mince", "grams": 150}, {"food": "potato", "grams": 300},
+    {"food": "broccoli", "grams": 120}, {"food": "onion", "grams": 50},
+    {"food": "olive oil", "grams": 10}]},
+  {"name": "cod with quinoa and tomato", "ingredients": [
+    {"food": "cod fillet", "grams": 200}, {"food": "cooked quinoa", "grams": 200},
+    {"food": "tomato", "grams": 150}, {"food": "spinach", "grams": 60},
+    {"food": "olive oil", "grams": 10}]},
+  {"name": "yoghurt and oat bowl", "ingredients": [
+    {"food": "rolled oats", "grams": 60}, {"food": "greek yoghurt", "grams": 250},
+    {"food": "banana", "grams": 100}]},
+  {"name": "chickpea and feta salad", "ingredients": [
+    {"food": "chickpeas", "grams": 180}, {"food": "feta cheese", "grams": 60},
+    {"food": "tomato", "grams": 150}, {"food": "peppers", "grams": 100},
+    {"food": "cooked quinoa", "grams": 100}, {"food": "olive oil", "grams": 5}]}
+]
