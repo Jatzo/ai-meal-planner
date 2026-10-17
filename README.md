@@ -6,6 +6,10 @@ The data is invented: 31 foods and 12 recipes, written for this project. This is
 
 The reasoning behind the design is in [docs/DESIGN.md](docs/DESIGN.md).
 
+![Concept board of four phone screens: ask in plain words, snap the fridge, confirm the foods, and a planned meal with its rule checks](docs/concept/goal-ui.png)
+
+The board above is a concept of where the app is going. Dashed labels mark goals that are not built yet; the rule checks and the meal's numbers come from the engine today. The working page looks like the screenshot under [Try it in a browser](#try-it-in-a-browser).
+
 ## Quick start
 
 From the project root, in PowerShell:
@@ -24,6 +28,8 @@ On macOS or Linux, use `python3.13 -m venv .venv` and `source .venv/bin/activate
 The package needs Python 3.11 or later and has no runtime dependencies. The tests also run in GitHub Actions on every push.
 
 ## Try it in a browser
+
+<img src="docs/screenshot-page.png" width="320" alt="The working page on a phone-sized screen, with a recipe answer open: chicken and rice bowl, score 99.3">
 
 ```powershell
 python -m mealplanner.web
