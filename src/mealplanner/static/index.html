@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Rules-first meal planner</title>
+<style>
+  :root {
+    --page: #e7ebe1;
+    --app: #f3f5ef;
+    --card: #ffffff;
+    --ink: #151912;
+    --muted: #5b6355;
+    --edge: #858e7b;      /* unselected control borders: 3:1 against white */
+    --hairline: #e1e5da;
+    --lime: #c5f02c;      /* only ever a fill behind dark ink, never text on white */
+    --olive: #3b5600;
+    --soft: #eef1e8;
+    --error: #a3281c;
+    --card-radius: 14px;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color-scheme: light;
+    accent-color: var(--olive);
+    caret-color: var(--olive);
+    scrollbar-color: #c4cbb9 transparent;
+  }
+  * { box-sizing: border-box; }
+  ::selection { background: var(--lime); color: var(--ink); }
+  html { background: var(--page); }
+  body {
+    margin: 0;
+    color: var(--ink);
+    font: 16px/1.45 var(--sans);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, input, label { touch-action: manipulation; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--olive); outline-offset: 2px; }
+
+  .app {
+    max-width: 440px;
+    min-height: 100dvh;
+    margin: 0 auto;
+    background: var(--app);
+    display: flex;
+    flex-direction: column;
+  }
+  @media (min-width: 520px) {
+    body { padding: 28px 16px; }
+    .app {
+      min-height: calc(100dvh - 56px);
+      border-radius: 28px;
+      overflow: clip;
+      box-shadow: 0 1px 2px rgb(21 25 18 / 0.06), 0 18px 48px -12px rgb(21 25 18 / 0.18);
+    }
+  }
+
+  .appbar { padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 8px; }
+  h1 { font-size: 1.75rem; line-height: 1.15; letter-spacing: -0.025em; margin: 0 0 6px; text-wrap: balance; }
+  .appbar p { margin: 0; color: var(--muted); font-size: 0.9375rem; }
+
+  main { flex: 1; padding: 12px 16px 24px; display: grid; gap: 14px; align-content: start; }
+
+  .examples { display: flex; gap: 8px; align-items: center; overflow-x: auto; padding: 2px 4px 4px; margin: 0 -4px; scrollbar-width: none; }
+  .examples span { color: var(--muted); font-size: 0.875rem; white-space: nowrap; margin-right: 2px; }
+  .pill-button {
+    flex: none;
+    border: 1px solid var(--edge);
+    background: var(--card);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 0.875rem;
+    font-weight: 550;
+    transition: transform 0.12s ease-out;
+  }
+  .pill-button:active { transform: scale(0.97); }
+
+  .card { background: var(--card); border-radius: var(--card-radius); padding: 18px 16px; }
+  .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  h2 { font-size: 1.0625rem; margin: 0; letter-spacing: -0.01em; }
+  .hint { color: var(--muted); font-size: 0.875rem; margin: 0 0 12px; }
+  .count {
+    font-size: 0.8125rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    background: var(--lime);
+    border-radius: 999px;
+    padding: 2px 10px;
+    white-space: nowrap;
+  }
+  .count.zero { background: var(--soft); color: var(--muted); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { position: relative; }
+  .chip input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .chip span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--edge);
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    transition: transform 0.12s ease-out, background-color 0.15s;
+  }
+  .chip input:checked + span {
+    background: var(--lime);
+    border: 2px solid var(--olive);
+    padding: 0 13px;
+    font-weight: 600;
+  }
+  .chip input:checked + span::before { content: "\2713"; font-weight: 700; color: var(--olive); }
+  .chip input:active + span { transform: scale(0.97); }
+  .chip input:focus-visible + span { outline: 2px solid var(--olive); outline-offset: 2px; }
+
+  .stepper-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; }
+  .stepper-row + .stepper-row { border-top: 1px solid var(--hairline); }
+  .stepper-row label { font-weight: 600; }
+  .stepper-row small { display: block; color: var(--muted); font-weight: 400; font-size: 0.8125rem; }
+  .stepper { display: flex; align-items: center; gap: 6px; }
+  .step {
+    width: 40px; height: 40px;
+    border-radius: 999px;
+    border: 1px solid var(--edge);
+    background: var(--card);
+    font-size: 1.25rem;
+    line-height: 1;
+    display: grid; place-items: center;
+    transition: transform 0.12s ease-out;
+  }
+  .step:active { transform: scale(0.94); }
+  .stepper input {
+    width: 76px;
+    height: 40px;
+    text-align: center;
+    font: 600 16px/1 var(--sans);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: var(--soft);
+    border: 0;
+    border-radius: 10px;
+    -moz-appearance: textfield;
+  }
+  .stepper input::-webkit-outer-spin-button,
+  .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--soft); border-radius: 999px; padding: 4px; }
+  .segmented label { position: relative; }
+  .segmented input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .segmented span {
+    display: block;
+    text-align: center;
+    padding: 9px 8px;
+    border: 2px solid transparent;
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 550;
+  }
+  .segmented input:checked + span { background: var(--lime); border-color: var(--olive); font-weight: 650; }
+  .segmented input:focus-visible + span { outline: 2px solid var(--olive); outline-offset: 2px; }
+  .segmented + .hint { margin: 10px 2px 0; }
+
+  .disclaimer { color: var(--muted); font-size: 0.8125rem; margin: 6px 4px 0; }
+
+  .actionbar {
+    position: sticky;
+    bottom: 0;
+    background: rgb(255 255 255 / 0.94);
+    border-top: 1px solid var(--hairline);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  .error { color: var(--error); font-size: 0.875rem; margin: 0 4px 10px; }
+  .primary {
+    width: 100%;
+    min-height: 54px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--lime);
+    color: var(--ink);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    box-shadow: 0 1px 0 rgb(59 86 0 / 0.25), 0 6px 16px -6px rgb(59 86 0 / 0.45);
+    transition: transform 0.12s ease-out;
+  }
+  .primary:active { transform: scale(0.98); }
+  .primary[aria-busy="true"] { opacity: 0.7; cursor: progress; }
+
+  /* The answer sheet. A native dialog gives the focus trap, Escape and the inert page for free. */
+  dialog {
+    width: min(440px, 100%);
+    max-width: 100%;
+    max-height: 88dvh;
+    margin: auto auto 0;
+    padding: 0;
+    border: 0;
+    border-radius: 24px 24px 0 0;
+    background: var(--card);
+    color: var(--ink);
+    overflow: auto;
+    overscroll-behavior: contain;
+    box-shadow: 0 -12px 40px -12px rgb(21 25 18 / 0.3);
+  }
+  dialog[open] { animation: rise 0.24s cubic-bezier(0.16, 1, 0.3, 1); }
+  dialog::backdrop { background: rgb(21 25 18 / 0.45); }
+  @keyframes rise { from { transform: translateY(100%); } }
+  .sheet { padding: 0 18px calc(20px + env(safe-area-inset-bottom, 0px)); }
+  .sheet-head {
+    position: sticky; top: 0;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 16px 0 12px;
+    background: var(--card);
+  }
+  .who { font-size: 0.875rem; font-weight: 650; border-radius: 999px; padding: 5px 12px; }
+  .who.rules { background: var(--lime); }
+  .who.model, .who.cache { border: 2px solid var(--olive); color: var(--olive); padding: 3px 10px; }
+  .who.none, .who.refused { background: var(--soft); }
+  .close { width: 40px; height: 40px; border-radius: 999px; border: 0; background: var(--soft); font-size: 1.25rem; line-height: 1; }
+  .message { margin: 0 0 16px; color: var(--muted); }
+
+  .meal { background: var(--app); border-radius: var(--card-radius); padding: 16px; margin-bottom: 12px; }
+  .meal h3 { margin: 0 0 12px; font-size: 1.125rem; letter-spacing: -0.01em; }
+  .meal h3::first-letter { text-transform: uppercase; }
+  .score { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+  .score b { font-size: 2.75rem; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .score span { color: var(--muted); font-size: 0.9375rem; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .tile { background: var(--card); border-radius: 10px; padding: 10px 12px; }
+  .tile b { display: block; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+  .tile small { color: var(--muted); font-size: 0.8125rem; }
+  .reason { font-size: 0.875rem; color: var(--muted); margin: 0 0 12px; }
+  .ingredients { list-style: none; margin: 0; padding: 0; }
+  .ingredients li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; }
+  .ingredients li + li { border-top: 1px solid var(--hairline); }
+  .ingredients .grams { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+  .session { font-size: 0.8125rem; color: var(--muted); margin-top: 16px; display: grid; gap: 2px; overflow-wrap: anywhere; }
+  .session b { color: var(--ink); font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, dialog[open] { transition: none !important; animation: none !important; }
+    .pill-button:active, .chip input:active + span, .step:active, .primary:active { transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="appbar">
+    <h1>Rules-first meal planner</h1>
+    <p>Recipes answer first. A model is asked only when none fit, and its answer goes through the same checks.</p>
+  </header>
+
+  <form id="form" novalidate>
+    <main>
+      <div class="examples">
+        <span>Try an example</span>
+        <button type="button" class="pill-button" data-example="match">Recipe fits</button>
+        <button type="button" class="pill-button" data-example="fallback">None fit</button>
+      </div>
+
+      <section class="card" aria-labelledby="kitchen-title">
+        <div class="card-head">
+          <h2 id="kitchen-title">In your kitchen</h2>
+          <span class="count zero" id="count">0 ticked</span>
+        </div>
+        <p class="hint">A recipe is only used if you have all of it.</p>
+        <div class="chips" id="foods" role="group" aria-labelledby="kitchen-title">
+          <span class="hint">Loading the food table.</span>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="targets-title">
+        <h2 id="targets-title">Targets for this meal</h2>
+        <div class="stepper-row">
+          <label for="kcal">Calories<small>kcal</small></label>
+          <div class="stepper">
+            <button type="button" class="step" data-step="kcal" data-by="-10" aria-label="Decrease calories by 10">&minus;</button>
+            <input id="kcal" type="number" min="1" step="10" value="580" inputmode="numeric">
+            <button type="button" class="step" data-step="kcal" data-by="10" aria-label="Increase calories by 10">+</button>
+          </div>
+        </div>
+        <div class="stepper-row">
+          <label for="protein">Protein<small>grams</small></label>
+          <div class="stepper">
+            <button type="button" class="step" data-step="protein" data-by="-1" aria-label="Decrease protein by 1 gram">&minus;</button>
+            <input id="protein" type="number" min="1" step="1" value="48" inputmode="numeric">
+            <button type="button" class="step" data-step="protein" data-by="1" aria-label="Increase protein by 1 gram">+</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="allergy-title">
+        <h2 id="allergy-title">Allergies</h2>
+        <p class="hint">Any meal with these is never served.</p>
+        <div class="chips" id="allergens" role="group" aria-labelledby="allergy-title"></div>
+      </section>
+
+      <section class="card" aria-labelledby="model-title">
+        <h2 id="model-title" style="margin-bottom:12px">If no recipe fits</h2>
+        <div class="segmented" role="radiogroup" aria-labelledby="model-title">
+          <label><input type="radio" name="model" value="none" checked><span>Recipes only</span></label>
+          <label><input type="radio" name="model" value="stub"><span>Stub model</span></label>
+        </div>
+        <p class="hint">The stub stands in for a real model and makes no network call.</p>
+      </section>
+
+      <p class="disclaimer">The 31 foods and 12 recipes are invented for this demo. This is not dietary or medical advice.</p>
+    </main>
+
+    <div class="actionbar">
+      <p class="error" id="error" role="alert" hidden></p>
+      <button type="submit" class="primary" id="submit">Plan a meal</button>
+    </div>
+  </form>
+</div>
+
+<dialog id="sheet" aria-labelledby="who">
+  <div class="sheet">
+    <div class="sheet-head">
+      <span class="who" id="who"></span>
+      <button type="button" class="close" id="close" aria-label="Close the answer">&times;</button>
+    </div>
+    <div id="answer"></div>
+  </div>
+</dialog>
+
+<script>
+  const EXAMPLES = {
+    match: { on_hand: ["chicken breast", "cooked brown rice", "broccoli", "olive oil"], kcal: 580, protein: 48, allergies: [], model: "none" },
+    fallback: { on_hand: ["egg", "potato", "spinach", "tomato"], kcal: 600, protein: 40, allergies: [], model: "stub" },
+  };
+  const WHO = {
+    rules: "Answered by the recipes",
+    model: "Answered by the model",
+    cache: "Answered from the cache",
+    none: "Not answered",
+    refused: "Not answered: over the cap",
+  };
+
+  const form = document.getElementById("form");
+  const errorBox = document.getElementById("error");
+  const submit = document.getElementById("submit");
+  const sheet = document.getElementById("sheet");
+  const count = document.getElementById("count");
+
+  // Every string from the server goes in through textContent, never innerHTML,
+  // because a model can put anything in a meal name.
+  function el(tag, props = {}, children = []) {
+    const node = document.createElement(tag);
+    Object.assign(node, props);
+    for (const child of children) node.append(child);
+    return node;
+  }
+
+  function chip(name, group) {
+    return el("label", { className: "chip" }, [
+      el("input", { type: "checkbox", name: group, value: name }),
+      el("span", { textContent: name }),
+    ]);
+  }
+
+  function checked(group) {
+    return [...form.querySelectorAll(`input[name="${group}"]:checked`)].map((input) => input.value);
+  }
+
+  function updateCount() {
+    const ticked = checked("food").length;
+    count.textContent = `${ticked} ticked`;
+    count.classList.toggle("zero", ticked === 0);
+  }
+
+  function showError(text) {
+    errorBox.textContent = text;
+    errorBox.hidden = !text;
+  }
+
+  async function loadFoods() {
+    try {
+      const response = await fetch("/api/foods");
+      const data = await response.json();
+      document.getElementById("foods").replaceChildren(...data.foods.map((name) => chip(name, "food")));
+      document.getElementById("allergens").replaceChildren(...data.allergens.map((name) => chip(name, "allergy")));
+      fillExample("match");
+    } catch {
+      showError("The food table could not be loaded. Check the server is still running, then reload the page.");
+    }
+  }
+
+  function fillExample(key) {
+    const example = EXAMPLES[key];
+    for (const input of form.querySelectorAll('input[name="food"]')) input.checked = example.on_hand.includes(input.value);
+    for (const input of form.querySelectorAll('input[name="allergy"]')) input.checked = example.allergies.includes(input.value);
+    document.getElementById("kcal").value = example.kcal;
+    document.getElementById("protein").value = example.protein;
+    form.querySelector(`input[name="model"][value="${example.model}"]`).checked = true;
+    updateCount();
+    showError("");
+  }
+
+  function step(button) {
+    const input = document.getElementById(button.dataset.step);
+    const by = Number(button.dataset.by);
+    const current = Number(input.value) || 0;
+    // Never below 1: the planner refuses a target of zero.
+    input.value = Math.max(1, current + by);
+  }
+
+  function renderMeal(meal) {
+    return el("article", { className: "meal" }, [
+      el("h3", { textContent: meal.name }),
+      el("div", { className: "score" }, [el("b", { textContent: meal.score }), el("span", { textContent: "score out of 100" })]),
+      el("div", { className: "tiles" }, [
+        el("div", { className: "tile" }, [el("b", { textContent: meal.kcal }), el("small", { textContent: "kcal" })]),
+        el("div", { className: "tile" }, [el("b", { textContent: meal.protein_g }), el("small", { textContent: "g protein" })]),
+      ]),
+      el("p", { className: "reason", textContent: meal.reason }),
+      el("ul", { className: "ingredients" }, meal.ingredients.map((item) =>
+        el("li", {}, [el("span", { textContent: item.food }), el("span", { className: "grams", textContent: `${item.grams} g` })])
+      )),
+    ]);
+  }
+
+  function openAnswer(data) {
+    const who = document.getElementById("who");
+    who.textContent = WHO[data.kind] || data.kind;
+    who.className = `who ${data.kind}`;
+    document.getElementById("answer").replaceChildren(
+      el("p", { className: "message", textContent: data.message }),
+      ...data.suggestions.map(renderMeal),
+      el("div", { className: "session" }, [
+        el("div", {}, [el("b", { textContent: "This session " }), data.summary]),
+        el("div", { textContent: `Request ${data.fingerprint}` }),
+      ]),
+    );
+    sheet.showModal();
+    sheet.scrollTop = 0;
+  }
+
+  // Closing never waits for an animation, so it cannot stick open when motion is reduced.
+  document.getElementById("close").addEventListener("click", () => sheet.close());
+  sheet.addEventListener("click", (event) => {
+    if (event.target === sheet) sheet.close();  // a tap on the dimmed backdrop
+  });
+  sheet.addEventListener("close", () => submit.focus());
+
+  form.addEventListener("click", (event) => {
+    const button = event.target.closest("button");
+    if (!button) return;
+    if (button.dataset.example) fillExample(button.dataset.example);
+    if (button.dataset.step) step(button);
+  });
+  form.addEventListener("change", updateCount);
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (submit.getAttribute("aria-busy") === "true") return;
+    const onHand = checked("food");
+    const kcal = Number(document.getElementById("kcal").value);
+    const protein = Number(document.getElementById("protein").value);
+    if (!onHand.length) return showError("Tick at least one food you have, then try again.");
+    if (!(kcal > 0) || !(protein > 0)) return showError("Both targets need a number above zero. Fix them, then try again.");
+    showError("");
+
+    // aria-disabled rather than disabled, so keyboard focus stays on the button.
+    submit.setAttribute("aria-busy", "true");
+    submit.setAttribute("aria-disabled", "true");
+    submit.textContent = "Planning";
+    try {
+      const response = await fetch("/api/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          on_hand: onHand,
+          kcal_target: kcal,
+          protein_target_g: protein,
+          allergies: checked("allergy"),
+          model: form.querySelector('input[name="model"]:checked').value,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) openAnswer(data);
+      else showError(data.error);
+    } catch {
+      showError("The planner did not answer. Check the server is still running, then try again.");
+    } finally {
+      submit.removeAttribute("aria-busy");
+      submit.removeAttribute("aria-disabled");
+      submit.textContent = "Plan a meal";
+    }
+  });
+
+  loadFoods();
+</script>
+</body>
+</html>
