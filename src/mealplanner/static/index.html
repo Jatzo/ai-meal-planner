@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f3f5ef">
 <title>Rules-first meal planner</title>
 <style>
   :root {
@@ -404,6 +404,7 @@
     const current = Number(input.value) || 0;
     // Never below 1: the planner refuses a target of zero.
     input.value = Math.max(1, current + by);
+    input.dispatchEvent(new Event("change", { bubbles: true }));  // a value set from script fires no change of its own
   }
 
   function renderMeal(meal) {
@@ -450,7 +451,10 @@
     if (button.dataset.example) fillExample(button.dataset.example);
     if (button.dataset.step) step(button);
   });
-  form.addEventListener("change", updateCount);
+  form.addEventListener("change", () => {
+    updateCount();
+    showError("");  // the form has changed, so an old complaint about it no longer stands
+  });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
