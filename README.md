@@ -1,6 +1,6 @@
 # Rules-first meal planner
 
-A small Python programme that suggests a meal from the foods you have on hand. A rules engine answers first, using 12 recipes and a scoring formula. A language model is asked only when no recipe fits, and only if you have switched one on. Every model call is counted and capped, and everything the model sends back goes through the same rule checks as a recipe. Its own numbers are thrown away and worked out again from the food table.
+A small Python programme that suggests a meal from the foods you have on hand. A rules engine answers first, using 12 recipes and a scoring formula. A language model is asked only when no recipe fits, and only if you have switched one on. Every model call is counted and capped, and everything the model sends back goes through the same rule checks as a recipe. Its own numbers are thrown away and worked out again from the food table. You can use it from the command line or from a page in your browser.
 
 The data is invented: 31 foods and 12 recipes, written for this project. This is not dietary or medical advice.
 
@@ -22,6 +22,26 @@ python -m mealplanner examples/forces_fallback.json --model stub
 On macOS or Linux, use `python3.13 -m venv .venv` and `source .venv/bin/activate`.
 
 The package needs Python 3.11 or later and has no runtime dependencies. The tests also run in GitHub Actions on every push.
+
+## Try it in a browser
+
+```powershell
+python -m mealplanner.web
+```
+
+Then open http://127.0.0.1:8000/ in a browser. The page is laid out like a phone app, in one column, white and lime green.
+
+1. Tick the foods you have. The count beside the heading shows how many are ticked.
+2. Set the calorie and protein targets with the minus and plus buttons, or type a number.
+3. Tick any allergies.
+4. Choose what happens when no recipe fits: **Recipes only**, or **Stub model**.
+5. Press **Plan a meal**.
+
+The answer slides up from the bottom. It says who answered (the recipes, the model or the cache), then shows each meal with its score out of 100, its calories and protein, the reason for the score and the ingredients. At the foot it shows the same summary line as the command line, counted across everything asked since the server started. Ask the same thing twice with the stub model and the second answer comes from the cache.
+
+**Recipe fits** and **None fit** at the top fill the form with the two example runs below. Close the answer with the cross, the Escape key or a tap outside it.
+
+The page listens on 127.0.0.1 only, so it is for showing the planner on your own screen, not for sharing a link. It offers the stub model and never Bedrock, so it needs no credentials. Stop it with Ctrl+C, and add `--port 8001` if port 8000 is taken.
 
 ## Two example runs
 
@@ -130,6 +150,8 @@ You need AWS credentials in the usual places and model access switched on for th
 - The cache lives in memory for one run. A new run starts with an empty cache.
 - A meal from the model is served on the rules alone, whatever its score. It shows its score so you can judge it.
 - A failed model call writes no ledger entry, so nothing is counted for it.
+- The browser page's cache and ledger last only as long as the server. Stopping it clears both.
+- The page's own script has no automated test. It was checked by hand at 375 and 1,440 pixels wide.
 
 ## Layout
 
@@ -139,7 +161,15 @@ You need AWS credentials in the usual places and model access switched on for th
 - `src/mealplanner/llm.py`: the model interface, the strict reply reader, the stub and the Bedrock model.
 - `src/mealplanner/planner.py`: the fixed order of rules, cache, budget and model.
 - `src/mealplanner/cli.py`: reads a request file, prints each answer and the summary line.
+- `src/mealplanner/web.py`: the local server behind the browser page, and its two JSON routes.
+- `src/mealplanner/static/index.html`: the browser page itself, with its styles and script in one file.
 - `src/mealplanner/data/`: the invented food table and recipes.
 - `examples/`: the two request files above.
 - `tests/`: the pytest suite.
 - `.github/workflows/ci.yml`: runs the tests and both examples.
+
+## Status and licence
+
+This project is unfinished. The goal is to make it an AI-based meal planner app. If you would like to pick it up from me, contact me through my GitHub profile: https://github.com/Jatzo.
+
+Copyright 2026 Jatzo. All rights reserved: see [LICENSE](LICENSE).

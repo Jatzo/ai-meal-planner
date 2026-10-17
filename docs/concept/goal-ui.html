@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<!-- Render: chrome --headless=new --hide-scrollbars --force-device-scale-factor=2 --window-size=1920,1080 --virtual-time-budget=10000 --screenshot=goal-ui.png goal-ui.html -->
+<title>AI Meal Planner: where the app is going</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<style>
+  :root {
+    --board: #e6eadf;
+    --app: #f3f5ef;
+    --card: #ffffff;
+    --ink: #151912;
+    --muted: #5b6355;
+    --edge: #c9cfc0;
+    --hairline: #e3e7dc;
+    --lime: #c5f02c;
+    --lime-soft: #eef8cf;
+    --olive: #3b5600;
+    --soft: #eef1e8;
+    --camera: #101310;
+    --photo: url("https://images.unsplash.com/photo-1737363625030-164e39339156?w=1600&q=80");
+    --sans: "Figtree", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  ::selection { background: var(--lime); color: var(--ink); }
+  html, body { margin: 0; }
+  body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: var(--board);
+    color: var(--ink);
+    font: 16px/1.4 var(--sans);
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+  .board { height: 100%; padding: 30px 68px 22px; display: grid; grid-template-rows: auto 1fr auto; gap: 14px; }
+
+  .board-head { display: flex; align-items: baseline; gap: 22px; }
+  .board-head h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; margin: 0; }
+  .board-head p { margin: 0; font-size: 19px; color: var(--muted); }
+  .board-head .mark {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 15px; font-weight: 700;
+    background: var(--lime); color: var(--ink);
+    padding: 5px 12px; border-radius: 999px; margin-left: auto;
+  }
+
+  .phones { display: flex; justify-content: center; gap: 46px; align-items: start; }
+  .slot { display: grid; justify-items: center; gap: 10px; }
+  .mk { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 4px 12px 4px 10px; font-size: 16px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .mk i { font-size: 17px; }
+  .mk.goal { border: 2px dashed var(--olive); }
+  .mk.built { background: var(--ink); color: var(--lime); border: 2px solid var(--ink); }
+  .mk.small { font-size: 12px; padding: 1px 7px; gap: 4px; border-width: 1.5px; }
+  .phone {
+    width: 410px; height: 864px;
+    border-radius: 58px;
+    background: var(--ink);
+    padding: 10px;
+    box-shadow: 0 2px 4px rgb(21 25 18 / 0.08), 0 30px 60px -24px rgb(21 25 18 / 0.35);
+    flex: none;
+  }
+  .screen {
+    width: 390px; height: 844px;
+    border-radius: 48px;
+    overflow: hidden;
+    background: var(--app);
+    position: relative;
+    display: flex; flex-direction: column;
+  }
+  .status { height: 50px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 6px 30px 0 34px; font-size: 16px; font-weight: 700; }
+  .status .icons { display: flex; gap: 6px; font-size: 17px; }
+  .home-bar { position: absolute; bottom: 8px; left: 50%; width: 134px; height: 5px; margin-left: -67px; border-radius: 3px; background: var(--ink); opacity: 0.85; }
+  .dark .home-bar { background: #fff; }
+
+  .pad { padding: 0 20px; }
+  .muted { color: var(--muted); }
+  .pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 7px 13px; font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .pill.soft { background: var(--lime-soft); color: var(--ink); }
+  .pill.line { border: 1px solid var(--edge); background: var(--card); }
+  .pill i { font-size: 16px; }
+
+  /* 1. Ask */
+  .ask-title { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin: 16px 0 16px; }
+  .composer { background: var(--card); border-radius: 24px; padding: 18px 18px 14px; box-shadow: 0 1px 2px rgb(21 25 18 / 0.05), 0 10px 24px -14px rgb(21 25 18 / 0.25); }
+  .composer .typed { font-size: 21px; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; min-height: 82px; }
+  .caret { display: inline-block; width: 2px; height: 24px; background: var(--olive); vertical-align: -4px; margin-left: 2px; }
+  .composer-tools { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .tool { width: 40px; height: 40px; border-radius: 999px; background: var(--soft); display: grid; place-items: center; font-size: 20px; }
+  .send { margin-left: auto; width: 44px; height: 44px; border-radius: 999px; background: var(--lime); display: grid; place-items: center; font-size: 22px; box-shadow: inset 0 0 0 2px var(--olive); }
+  .read-as { margin: 16px 0 8px; font-size: 13px; font-weight: 700; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .snap-tile {
+    margin-top: 18px;
+    display: flex; align-items: center; gap: 14px;
+    background: var(--lime); border-radius: 22px; padding: 16px 18px;
+    box-shadow: inset 0 0 0 2px var(--olive);
+  }
+  .snap-tile .icon { width: 50px; height: 50px; border-radius: 16px; background: var(--ink); color: var(--lime); display: grid; place-items: center; font-size: 26px; flex: none; }
+  .snap-tile b { display: block; font-size: 18px; }
+  .snap-tile span { font-size: 14px; color: #2b3a05; }
+  .snap-tile .go { margin-left: auto; font-size: 22px; }
+  .shelf { margin-top: 20px; }
+  .shelf-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 9px; }
+  .shelf-head b { font-size: 16px; }
+  .shelf-head span { font-size: 14px; font-weight: 600; color: var(--olive); }
+  .tabbar {
+    margin-top: auto; flex: none;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 10px 14px 30px; background: var(--card); border-top: 1px solid var(--hairline);
+  }
+  .tab { display: grid; justify-items: center; gap: 2px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .tab i { font-size: 24px; }
+  .tab.on { color: var(--ink); }
+  .tab.on i { background: var(--lime); border-radius: 999px; padding: 3px 14px; }
+
+  /* 2. Snap */
+  .dark { background: var(--camera); color: #fff; }
+  .cam-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 20px 12px; }
+  .cam-head b { font-size: 17px; }
+  .cam-btn { width: 40px; height: 40px; border-radius: 999px; background: rgb(255 255 255 / 0.14); display: grid; place-items: center; font-size: 20px; }
+  .viewfinder {
+    position: relative; height: 480px; flex: none;
+    background-image: var(--photo);
+    background-size: 720px 480px;
+    background-position: -200px 0;
+  }
+  .viewfinder::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08); }
+  .box { position: absolute; border: 3px solid var(--lime); border-radius: 14px; }
+  .box .tag {
+    position: absolute; left: -3px; top: -32px;
+    background: var(--lime); color: var(--ink);
+    font-size: 13px; font-weight: 700; padding: 4px 9px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  }
+  .box.below .tag { top: auto; bottom: -32px; }
+  .box.inside .tag { left: 8px; top: 8px; }
+  .box.unsure { border-style: dashed; border-color: #fff; }
+  .box.unsure .tag { background: #fff; }
+  .found { padding: 18px 20px 0; }
+  .found b { font-size: 20px; letter-spacing: -0.01em; }
+  .found p { margin: 4px 0 12px; font-size: 14px; color: #c3c9bc; }
+  .shutter-row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding: 0 44px 40px; }
+  .thumb { width: 46px; height: 46px; border-radius: 12px; background-image: var(--photo); background-size: 160px auto; background-position: -60px -30px; border: 2px solid #fff; }
+  .shutter { width: 76px; height: 76px; border-radius: 999px; border: 4px solid var(--lime); display: grid; place-items: center; }
+  .shutter::before { content: ""; width: 60px; height: 60px; border-radius: 999px; background: var(--lime); }
+
+  /* 3. Confirm */
+  .bar { display: flex; align-items: center; gap: 12px; padding: 6px 20px 10px; }
+  .bar .back { width: 40px; height: 40px; border-radius: 999px; background: var(--card); display: grid; place-items: center; font-size: 20px; border: 1px solid var(--hairline); }
+  .bar b { font-size: 17px; }
+  .title2 { font-size: 27px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.15; margin: 4px 0 6px; }
+  .request-line { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .request-line .pill { font-size: 13px; padding: 5px 10px; }
+  .group { background: var(--card); border-radius: 20px; padding: 6px 14px; margin-bottom: 12px; }
+  .group-head { font-size: 13px; font-weight: 700; color: var(--muted); padding: 10px 2px 4px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+  .row + .row { border-top: 1px solid var(--hairline); }
+  .row .pic { width: 42px; height: 42px; border-radius: 12px; background-image: var(--photo); background-size: 900px 600px; flex: none; }
+  .row .ico { width: 42px; height: 42px; border-radius: 12px; background: var(--soft); display: grid; place-items: center; font-size: 21px; color: var(--olive); flex: none; }
+  .row .name { font-size: 16px; font-weight: 600; }
+  .row .sub { font-size: 13px; color: var(--muted); line-height: 1.3; }
+  .tick { margin-left: auto; width: 28px; height: 28px; border-radius: 999px; background: var(--lime); box-shadow: inset 0 0 0 2px var(--olive); display: grid; place-items: center; font-size: 16px; color: var(--ink); flex: none; }
+  .tick.off { background: var(--card); box-shadow: inset 0 0 0 2px var(--edge); }
+  .row.unsure .name::after { content: "Not sure"; margin-left: 8px; font-size: 12px; font-weight: 700; color: var(--olive); background: var(--lime-soft); padding: 2px 8px; border-radius: 999px; vertical-align: 2px; }
+  .add-row { display: flex; align-items: center; gap: 8px; color: var(--olive); font-weight: 700; font-size: 15px; padding: 2px 4px 0; }
+  .cta { margin-top: auto; padding: 12px 20px 34px; }
+  .primary { width: 100%; height: 56px; border-radius: 999px; background: var(--lime); box-shadow: inset 0 0 0 2px var(--olive), 0 8px 18px -8px rgb(59 86 0 / 0.5); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 18px; font-weight: 800; }
+
+  /* 4. Meal */
+  .who { display: inline-flex; align-items: center; gap: 6px; border: 2px solid var(--olive); color: var(--olive); border-radius: 999px; padding: 4px 11px; font-size: 13px; font-weight: 700; }
+  .meal-name { font-size: 27px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.12; margin: 10px 0 12px; }
+  .score-row { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .score { font-size: 54px; font-weight: 800; letter-spacing: -0.04em; line-height: 0.9; }
+  .score-row .of { font-size: 14px; color: var(--muted); line-height: 1.3; }
+  .score-row .of b { color: var(--ink); display: block; font-size: 15px; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .tile { background: var(--card); border-radius: 16px; padding: 10px 12px; }
+  .tile b { display: block; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+  .tile small { display: block; font-size: 12px; line-height: 1.35; color: var(--muted); }
+  .tile small + small { font-weight: 500; }
+  .checks { background: var(--card); border-radius: 18px; padding: 12px 14px; margin-bottom: 12px; }
+  .checks .head { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+  .check { display: flex; gap: 9px; align-items: flex-start; font-size: 14px; font-weight: 500; padding: 4px 0; line-height: 1.3; }
+  .check i { color: var(--olive); font-size: 18px; flex: none; margin-top: -1px; }
+  .ingredients { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ingredients .pill { background: var(--card); border: 1px solid var(--hairline); font-weight: 500; font-size: 13px; padding: 6px 10px; }
+  .ingredients .pill b { font-weight: 700; }
+  .cta.two { display: flex; gap: 10px; }
+  .cta.two .primary { flex: 1; }
+  .secondary { width: 56px; height: 56px; border-radius: 999px; background: var(--card); border: 1px solid var(--edge); display: grid; place-items: center; font-size: 22px; flex: none; }
+
+  .board-foot { display: flex; justify-content: space-between; align-items: center; gap: 40px; font-size: 16px; color: var(--ink); }
+  .board-foot .legend { display: flex; align-items: center; gap: 10px; margin: 0; white-space: nowrap; }
+  .board-foot .legend .mk.built { margin-left: 14px; }
+  .board-foot > span { color: var(--muted); font-size: 14px; }
+  .board-foot p { margin: 0; }
+  .board-foot b { color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="board">
+  <header class="board-head">
+    <h1>AI Meal Planner</h1>
+    <p>Where the app is going: ask in plain words, snap your fridge, cook a meal the rules have checked.</p>
+    <span class="mark"><i class="ph ph-compass"></i>Concept</span>
+  </header>
+
+  <div class="phones">
+
+    <!-- 1. Ask -->
+    <div class="slot"><span class="mk goal"><i class="ph ph-compass"></i>Goal: ask in plain words</span>
+    <div class="phone"><div class="screen">
+      <div class="status"><span>18:42</span><span class="icons"><i class="ph ph-cell-signal-full"></i><i class="ph ph-wifi-high"></i><i class="ph ph-battery-full"></i></span></div>
+      <div class="pad">
+        <h2 class="ask-title">What are we cooking?</h2>
+        <div class="composer">
+          <div class="typed">High-protein dinner, about 650 kcal, 20 minutes, no dairy<span class="caret"></span></div>
+          <div class="composer-tools">
+            <span class="tool"><i class="ph ph-microphone"></i></span>
+            <span class="tool"><i class="ph ph-camera"></i></span>
+            <span class="send"><i class="ph ph-arrow-up"></i></span>
+          </div>
+        </div>
+        <p class="read-as">I'll plan for this. Tap a chip to change it.</p>
+        <div class="chips">
+          <span class="pill soft"><i class="ph ph-moon-stars"></i>Dinner</span>
+          <span class="pill soft"><i class="ph ph-fire"></i>About 650 kcal</span>
+          <span class="pill soft"><i class="ph ph-barbell"></i>35 g protein</span>
+          <span class="pill soft"><i class="ph ph-timer"></i>20 min</span>
+          <span class="pill soft"><i class="ph ph-prohibit"></i>No dairy</span>
+        </div>
+        <div class="snap-tile">
+          <span class="icon"><i class="ph ph-camera"></i></span>
+          <div><b>Snap your fridge</b><span>Show me what you have</span></div>
+          <i class="ph ph-arrow-right go"></i>
+        </div>
+        <div class="shelf">
+          <div class="shelf-head"><b>In your cupboard</b><span>Edit</span></div>
+          <div class="chips">
+            <span class="pill line">chickpeas</span>
+            <span class="pill line">onion</span>
+            <span class="pill line">olive oil</span>
+            <span class="pill line">rolled oats</span>
+            <span class="pill line">cooked brown rice</span>
+          </div>
+        </div>
+      </div>
+      <nav class="tabbar">
+        <span class="tab on"><i class="ph-fill ph-chef-hat"></i>Plan</span>
+        <span class="tab"><i class="ph ph-cooking-pot"></i>Kitchen</span>
+        <span class="tab"><i class="ph ph-bookmark-simple"></i>Saved</span>
+        <span class="tab"><i class="ph ph-user"></i>You</span>
+      </nav>
+      <span class="home-bar"></span>
+    </div></div></div>
+
+    <!-- 2. Snap -->
+    <div class="slot"><span class="mk goal"><i class="ph ph-compass"></i>Goal: snap your fridge</span>
+    <div class="phone"><div class="screen dark">
+      <div class="status"><span>18:43</span><span class="icons"><i class="ph ph-cell-signal-full"></i><i class="ph ph-wifi-high"></i><i class="ph ph-battery-full"></i></span></div>
+      <div class="cam-head">
+        <span class="cam-btn"><i class="ph ph-x"></i></span>
+        <b>Snap your fridge</b>
+        <span class="cam-btn"><i class="ph ph-lightning"></i></span>
+      </div>
+      <div class="viewfinder" role="img" aria-label="An open fridge with tomatoes, lettuce, spinach and eggs, with the foods outlined">
+        <span class="box below" style="left:4px; top:6px; width:72px; height:58px"><span class="tag"><i class="ph ph-check"></i>peppers</span></span>
+        <span class="box below" style="left:138px; top:4px; width:130px; height:42px"><span class="tag"><i class="ph ph-check"></i>tomato</span></span>
+        <span class="box unsure" style="left:12px; top:178px; width:112px; height:132px"><span class="tag"><i class="ph ph-question"></i>lettuce?</span></span>
+        <span class="box" style="left:132px; top:186px; width:128px; height:140px"><span class="tag"><i class="ph ph-check"></i>spinach</span></span>
+        <span class="box inside" style="left:164px; top:362px; width:212px; height:110px"><span class="tag"><i class="ph ph-check"></i>egg</span></span>
+      </div>
+      <div class="found">
+        <b>Found 4 foods. Not sure about 1.</b>
+        <p>I only count foods from the food table.</p>
+      </div>
+      <div class="shutter-row">
+        <span class="thumb"></span>
+        <span class="shutter"></span>
+        <span class="cam-btn"><i class="ph ph-camera-rotate"></i></span>
+      </div>
+      <span class="home-bar"></span>
+    </div></div></div>
+
+    <!-- 3. Confirm -->
+    <div class="slot"><span class="mk goal"><i class="ph ph-compass"></i>Goal: confirm the foods</span>
+    <div class="phone"><div class="screen">
+      <div class="status"><span>18:43</span><span class="icons"><i class="ph ph-cell-signal-full"></i><i class="ph ph-wifi-high"></i><i class="ph ph-battery-full"></i></span></div>
+      <div class="bar"><span class="back"><i class="ph ph-arrow-left"></i></span><b>Check your kitchen</b></div>
+      <div class="pad">
+        <h2 class="title2">Here is what I found</h2>
+        <div class="request-line">
+          <span class="pill soft">About 650 kcal</span>
+          <span class="pill soft">35 g protein</span>
+          <span class="pill soft">No dairy</span>
+        </div>
+        <div class="group">
+          <div class="group-head">From your photo</div>
+          <div class="row"><span class="pic" style="background-position:-258px -18px"></span><div><div class="name">Peppers</div><div class="sub">Top shelf</div></div><span class="tick"><i class="ph ph-check"></i></span></div>
+          <div class="row"><span class="pic" style="background-position:-430px -4px"></span><div><div class="name">Tomato</div><div class="sub">Top shelf</div></div><span class="tick"><i class="ph ph-check"></i></span></div>
+          <div class="row"><span class="pic" style="background-position:-470px -290px"></span><div><div class="name">Spinach</div><div class="sub">Middle shelf</div></div><span class="tick"><i class="ph ph-check"></i></span></div>
+          <div class="row"><span class="pic" style="background-size:300px 200px; background-position:-176px -150px"></span><div><div class="name">Egg</div><div class="sub">Door</div></div><span class="tick"><i class="ph ph-check"></i></span></div>
+          <div class="row unsure"><span class="pic" style="background-position:-300px -270px"></span><div><div class="name">Lettuce</div><div class="sub">Not in the food table yet, so I'll leave it out</div></div><span class="tick off"></span></div>
+        </div>
+        <div class="group">
+          <div class="group-head">Already in your cupboard</div>
+          <div class="row"><span class="ico"><i class="ph ph-jar"></i></span><div class="name">Chickpeas, onion, olive oil</div><span class="tick"><i class="ph ph-check"></i></span></div>
+        </div>
+        <div class="add-row"><i class="ph ph-plus"></i>Add something I missed</div>
+      </div>
+      <div class="cta"><div class="primary"><i class="ph ph-sparkle"></i>Plan my meal</div></div>
+      <span class="home-bar"></span>
+    </div></div></div>
+
+    <!-- 4. Meal -->
+    <div class="slot"><span class="mk built"><i class="ph ph-check-circle"></i>Built today: the rule checks and numbers</span>
+    <div class="phone"><div class="screen">
+      <div class="status"><span>18:44</span><span class="icons"><i class="ph ph-cell-signal-full"></i><i class="ph ph-wifi-high"></i><i class="ph ph-battery-full"></i></span></div>
+      <div class="bar"><span class="back"><i class="ph ph-arrow-left"></i></span><b>Your dinner</b></div>
+      <div class="pad">
+        <span class="who"><i class="ph ph-sparkle"></i>No recipe fitted, so the AI planned it</span>
+        <h2 class="meal-name">Chickpea, egg and spinach skillet</h2>
+        <div class="score-row">
+          <span class="score">97.7</span>
+          <span class="of"><b>Score out of 100</b>Close to both targets</span>
+        </div>
+        <div class="tiles">
+          <div class="tile"><b>633</b><small>kcal</small><small>target 650</small></div>
+          <div class="tile"><b>35.7 g</b><small>protein</small><small>target 35 g</small></div>
+          <div class="tile"><b>20 min</b><small>to cook</small><small><span class="mk goal small">Goal</span></small></div>
+        </div>
+        <div class="checks">
+          <div class="head">Checked by the rules</div>
+          <div class="check"><i class="ph-fill ph-check-circle"></i>No dairy in any ingredient</div>
+          <div class="check"><i class="ph-fill ph-check-circle"></i>Everything is in your kitchen</div>
+          <div class="check"><i class="ph-fill ph-check-circle"></i>Numbers worked out again from the food table</div>
+        </div>
+        <div class="ingredients">
+          <span class="pill">chickpeas <b>200 g</b></span>
+          <span class="pill">tomato <b>150 g</b></span>
+          <span class="pill">spinach <b>100 g</b></span>
+          <span class="pill">egg <b>100 g</b></span>
+          <span class="pill">onion <b>60 g</b></span>
+          <span class="pill">olive oil <b>10 g</b></span>
+        </div>
+      </div>
+      <div class="cta two"><div class="primary"><i class="ph ph-cooking-pot"></i>Start cooking<span class="mk goal small">Goal</span></div><span class="secondary"><i class="ph ph-bookmark-simple"></i></span></div>
+      <span class="home-bar"></span>
+    </div></div></div>
+
+  </div>
+
+  <footer class="board-foot">
+    <p class="legend"><span class="mk goal"><i class="ph ph-compass"></i>Goal</span><span>Not built yet, including voice input, cooking steps and the tabs.</span><span class="mk built"><i class="ph ph-check-circle"></i>Built</span><span>runs today, on the project's invented food table. Not dietary or medical advice.</span></p>
+    <span>Photo: Onur Burak Akın on Unsplash</span>
+  </footer>
+</div>
+</body>
+</html>
