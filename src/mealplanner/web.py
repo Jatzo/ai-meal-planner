@@ -112,10 +112,16 @@ def _make_handler(service: PlannerService, page: bytes) -> type[BaseHTTPRequestH
             try:
                 length = int(self.headers.get("Content-Length", ""))
             except ValueError:
-                self._send_json(HTTPStatus.LENGTH_REQUIRED, {"error": "The request has no length. Send it again."})
+                self._send_json(
+                    HTTPStatus.LENGTH_REQUIRED,
+                    {"error": "The request has no usable Content-Length header. Send its length in bytes, then try again."},
+                )
                 return
             if length < 0:
-                self._send_json(HTTPStatus.BAD_REQUEST, {"error": "The request length is not valid. Send it again."})
+                self._send_json(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "The Content-Length header is below zero. Send the real length, then try again."},
+                )
                 return
             if length > MAX_BODY_BYTES:
                 # The body is left unread, so the connection closes rather than being reused.
@@ -128,11 +134,17 @@ def _make_handler(service: PlannerService, page: bytes) -> type[BaseHTTPRequestH
             try:
                 body = json.loads(self.rfile.read(length).decode("utf-8"))
             except (ValueError, RecursionError):  # bad JSON, bad UTF-8, or nesting deep enough to overflow
-                self._send_json(HTTPStatus.BAD_REQUEST, {"error": "The request is not valid JSON. Send it again."})
+                self._send_json(
+                    HTTPStatus.BAD_REQUEST, {"error": "The request is not valid JSON. Fix the JSON, then try again."}
+                )
                 return
             if not isinstance(body, dict):
                 self._send_json(
-                    HTTPStatus.BAD_REQUEST, {"error": "The request is not a set of named fields. Send it again."}
+                    HTTPStatus.BAD_REQUEST,
+                    {
+                        "error": "The request is not a set of named fields. Send an object with on_hand, "
+                        "kcal_target and protein_target_g, then try again."
+                    },
                 )
                 return
             status, result = service.plan(body)

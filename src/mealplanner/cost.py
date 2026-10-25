@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+CHARS_PER_TOKEN = 4  # a rough rule for English text, not a tokeniser
 MAX_OUTPUT_TOKENS = 300  # the most a model reply may use, and what an estimate assumes it will
 PER_REQUEST_TOKEN_CAP = 1_500  # one request may not be estimated above this
 DAILY_TOKEN_CAP = 50_000  # model tokens allowed per UTC day, across all requests
@@ -24,10 +25,10 @@ OUTCOMES = ("served", "rejected", "no_match", "over_request_cap", "over_daily_ca
 def estimate_tokens(prompt: str) -> int:
     """Estimate the tokens one model call could use, reply included.
 
-    Characters divided by 4 is a rough rule, not a tokeniser. It errs a little
+    Characters divided by CHARS_PER_TOKEN is a rough rule, not a tokeniser. It errs a little
     either way, which is fine for a cap that only has to stop big mistakes.
     """
-    return math.ceil(len(prompt) / 4) + MAX_OUTPUT_TOKENS
+    return math.ceil(len(prompt) / CHARS_PER_TOKEN) + MAX_OUTPUT_TOKENS
 
 
 def cost_usd(input_tokens: int, output_tokens: int) -> float:

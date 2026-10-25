@@ -12,7 +12,7 @@ import re
 from dataclasses import dataclass
 from typing import Protocol
 
-from mealplanner.cost import MAX_OUTPUT_TOKENS
+from mealplanner.cost import CHARS_PER_TOKEN, MAX_OUTPUT_TOKENS
 from mealplanner.models import Food, Ingredient, Request
 
 SYSTEM_PROMPT = (
@@ -125,7 +125,9 @@ class StubModel:
                 {"name": "stub meal", "ingredients": [{"food": food, "grams": 100} for food in foods]}
             )
         return ModelReply(
-            text, math.ceil(len(system + prompt) / 4), math.ceil(len(text) / 4)
+            text,
+            math.ceil(len(system + prompt) / CHARS_PER_TOKEN),
+            math.ceil(len(text) / CHARS_PER_TOKEN),
         )
 
 
